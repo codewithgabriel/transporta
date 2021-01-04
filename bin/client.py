@@ -44,7 +44,10 @@ class __client__():
         except socket.gaierror:
             self.server_error()
         except ConnectionRefusedError:
-            tc.cprint(f'[!] {self.IP} is down on port {self.PORT}!', 'red')
+            tc.cprint(f'[!] {self.IP} is down on port {self.PORT}!' , 'red')
+            sys.exit()
+        except Exception:
+            tc.cprint(f'[!] unable to reach to {self.IP}')
             sys.exit()
     def handle_connection(self, conn):
         if self.CMD == 'send':
@@ -56,14 +59,14 @@ class __client__():
             self.send_transport_info(self.VALUE)
             #self.__recv__()
 
-        
-           
+
+
 
     def handle_active_conn_count(self):
         self.CONN_NO = host.__host__(self.IP, self.PORT).CONN_NO
 
     def __recv__(self, conn , __data__):
-        
+
             try:
                 print(f'[+] {__data__}')
                 tc.cprint(f'[+] {len(__data__)} byte(s) is recv!.', 'yellow')
@@ -92,13 +95,29 @@ class __client__():
             self.conn.send(INFO)
             tc.cprint('[+] info is sent!...' , 'yellow')
             print('[#] done sending info!')
+            tc.cprint('[+] waiting for reply...', 'yellow')
+            incoming_bytes = self.conn.recv(self.BYTE_SIZE_MAX)
+            tc.cprint('[+] feedback is recv...', 'green')
+            check =  b'<TRANSPORT>' in incoming_bytes
+            if check:
+                __data__ = incoming_bytes.split(b"<TRANSPORT>")
+                file_size = int(__data__[0].decode())
+            else:
+                self.close_connection()
             FILE = INFO.decode().split(',')
-            file_size = os.path.getsize(FILE[0].strip())
-            file_name = FILE[0].split('/')
-            file_name = file_name[-1]
-            file_name = FILE[1] + '/' + file_name 
-            
-            progress = tqdm.tqdm(range(file_size) ,  f'[+] transporting {file_name}...' , unit='B' , unit_scale=True)
+            file_dest_dir = FILE[0].strip()
+            check_backw_splash = '\\' in FILE[1]
+            check_forw_splash = '/' in FILE[1]
+            if check_backw_splash:
+                file_name = FILE[1].split('\\')
+                file_name = file_name[-1]
+                file_name = file_dest_dir + '/' + file_name
+            elif check_forw_splash:
+                file_name = FILE[1].split('/')
+                file_name = file_name[-1]
+                file_name = file_dest_dir + '/' + file_name
+
+            progress = tqdm.tqdm(range(file_size) ,  f'[+] transporting data into {file_name.strip()}...' , unit='B' , unit_scale=True)
             with open(file_name.strip(), 'wb') as f:
                 for _ in progress:
                     incoming_bytes = self.conn.recv(self.BYTE_SIZE_MAX)
@@ -108,10 +127,11 @@ class __client__():
                     progress.update(file_size)
             tc.cprint(f'[+] {file_name} is successfully transported', 'yellow')
             self.close_connection()
-        except FileNotFoundError:
-            tc.cprint(f'[!] error allocating resources')
+        except FileNotFoundError as msg:
+            tc.cprint(f'[!] error allocating resources:' +  msg)
             self.exit()
-        except Exception:
+        except Exception as msg:
+            print(msg)
             self.exit()
     def send_drag_info(self, INFO):
         try:
@@ -119,8 +139,8 @@ class __client__():
             FILE = INFO.decode().split(',')
             file_size = os.path.getsize(FILE[0].strip())
             file_name = FILE[0].strip()
-            
-            self.conn.send(INFO + b',' + bytes(str(file_size) , 'utf-8')+ ',<DRAG>'.encode())
+
+            self.conn.send(INFO + b',' + str(file_size).encode()  + ',<DRAG>'.encode())
             # incoming_bytes = self.conn.recv(self.BYTE_SIZE_MAX)
             # print(incoming_bytes)
             progress = tqdm.tqdm(range(file_size) ,  f'[+] dragging {file_name}...' , unit='B' , unit_scale=True)
@@ -154,4 +174,3 @@ class __client__():
             self.exit()
         except Exception:
             self.exit()
-            

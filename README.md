@@ -53,12 +53,12 @@ How to send file over transporta network
 	example 1: -t or --transport:
 		./transporta -C 192.168.43.1 5050 -t "/root/Desktop/sample.mp4 , /root/Videos"
 	description:
-		"remote file to send location , where to save the sent file on local machine"
+		"where to save the sent file on local machine ,  file to transport on remote machine"
 	
 	example 2: -d or --drag:
 		./transporta -C 192.168.43.1 5050 -t "/root/Desktop/sample.mp4 , /root/Videos"
 	description:
-		"local file to send location , where to save the sent file on remote machine"
+		"local file to send location , where to save the sent file ons remote machine"
 
 
 Report bugs or issue

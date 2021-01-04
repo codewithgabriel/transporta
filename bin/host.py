@@ -28,7 +28,7 @@ class __host__():
         elif byte_size == b'DEF':
             self.BYTE_SIZE = 1000
         self.conn = None
- 
+
 
     def start_connection(self):
         try:
@@ -43,8 +43,8 @@ class __host__():
                     conn , addr =  server.accept()
                     self.conn = conn
                     self.CONN_NO.append(addr)
-                    
-                        
+
+
                     thread =  threading.Thread(target=self.handle_connection , args=(conn,addr))
                     thread.start()
                 thread._stop()
@@ -57,7 +57,7 @@ class __host__():
             self.server_error()
             self.exit()
         except OSError:
-            self.server_error()   
+            self.server_error()
     def handle_connection(self, conn, addr):
         try:
             tc.cprint(f'[*] {addr} connected', 'green')
@@ -66,8 +66,8 @@ class __host__():
             # self.__send__(conn,addr)
         except KeyboardInterrupt:
             self.exit()
-  
-           
+
+
 
     def __recv__(self, conn, addr):
             __data__ = conn.recv(self.BYTE_SIZE)
@@ -78,24 +78,24 @@ class __host__():
         check_drag = b'<DRAG>' in __data__
         if check_transport:
             INFO = __data__.decode().split(',')
-            remote_file_dest = INFO[0]
-            local_file_dest = INFO[1]
-            TRANSPORT = transport.transport(conn, remote_file_dest, local_file_dest)
-            TRANSPORT.send()            
+            local_file_dest = INFO[0]
+            remote_file_dest = INFO[1]
+            TRANSPORT = transport.transport(conn, local_file_dest, remote_file_dest)
+            TRANSPORT.send()
         elif check_drag:
             INFO = __data__.decode().split(',')
             INFO.remove('<DRAG>')
-            
+
             remote_file_name = INFO[0].strip()
             remote_file_name = remote_file_name.split('/')
 
-            remote_file_dest = INFO[1] + '/' + remote_file_name[-1]            
+            remote_file_dest = INFO[1] + '/' + remote_file_name[-1]
             local_file_dest = INFO[0]
-            file_size = INFO[2]            
+            file_size = INFO[2]
             DRAG = drag.drag(conn, remote_file_dest, local_file_dest, file_size)
             DRAG.recv()
         else:
-            pass       
+            pass
     def reply_bytes(self,conn,addr, __data__):
         check_transport = b',' in  __data__ and b'/' in __data__
         if __data__ == b'exit':
@@ -113,7 +113,7 @@ class __host__():
             else:
                 tc.cprint(f'[+] {addr} says {__data__}' , 'green')
                 conn.send(b'recv!')
-        
+
 
     # def __send__(self, conn , addr, cmd):
     #     if cmd == 'send':
@@ -135,4 +135,3 @@ class __host__():
             self.exit()
         except Exception:
             self.exit()
-            
